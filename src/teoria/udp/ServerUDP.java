@@ -5,7 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
 public class ServerUDP {
-private static final int ECHOMAX = 255; // Tamagno maximo de los mensajes
+public static final int ECHOMAX = 255; // Tamagno maximo de los mensajes
 	
 	
 	public static void main(String[] args) throws IOException {

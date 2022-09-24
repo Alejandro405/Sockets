@@ -31,13 +31,15 @@ public class RecivedCheckList {
         List<Integer> result = new ArrayList<>();
         List<Integer> acks = ackList.stream().toList();
 
-        for (int i = 0; i < ackList.size(); i++) {
+        for (int i = 0; i < ackList.size() - 1; i++) {
             if (acks.get(i) + 1 != acks.get(i + 1)) // Encontramos las dos subsecuencias
-                result.addAll( IntStream.rangeClosed(acks.get(i), acks.get(i + 1))
+                result.addAll( IntStream.rangeClosed(acks.get(i) + 1, acks.get(i + 1) - 1)
                                          .boxed()
                                          .toList());
 
         }
+
+        unOrderedCheckedBlock = !result.isEmpty();
         return result;
     }
 

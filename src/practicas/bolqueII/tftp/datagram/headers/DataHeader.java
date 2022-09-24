@@ -1,13 +1,42 @@
 package practicas.bolqueII.tftp.datagram.headers;
 
-public class DataHeader extends Header{
-    @Override
-    public byte[] compactCabecera() {
-        return new byte[0];
+import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
+
+import javax.xml.crypto.Data;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+
+public class DataHeader implements Header {
+    private static final short opCode = 3;
+    private short blockId;
+    private byte[] data;
+
+    public DataHeader(byte[] input) throws IOException {
+        decode(this, new DataInputStream(new ByteArrayInputStream(input)));
+    }
+
+    public DataHeader(short blockId, byte[] data) {
+        this.blockId = blockId;
+        this.data = data;
+    }
+
+    public DataHeader() {
     }
 
     @Override
-    public Header descompactCabecera(byte[] input) {
-        return null;
+    public byte[] compactHeader() throws IOException {
+        ByteArrayOutputStream aux = new ByteArrayOutputStream();
+        DataOutputStream res = new DataOutputStream(aux);
+
+        res.writeShort(opCode);
+        res.writeShort(blockId);
+        res.write(data);
+
+        return aux.toByteArray();
+    }
+
+    private static void decode(DataHeader header, DataInputStream inputStream) throws IOException {
+        header.blockId = inputStream.readShort();
+        header.data = inputStream.readAllBytes();
     }
 }

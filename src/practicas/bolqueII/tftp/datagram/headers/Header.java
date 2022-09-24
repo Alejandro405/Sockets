@@ -1,5 +1,10 @@
 package practicas.bolqueII.tftp.datagram.headers;
 
+import practicas.bolqueII.tftp.tools.TFTPHeaderFormatException;
+import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
+
+import java.io.IOException;
+
 /**
  * Orden de las cabeceras de la torre de protocolos
  *  ----------------------------------------------------
@@ -7,19 +12,14 @@ package practicas.bolqueII.tftp.datagram.headers;
  *  ----------------------------------------------------
  *
  */
-public abstract class Header {
-    private short opCode;
+public interface Header {
+    static final byte DELIMITER = 0;
+
 
     /**
      * Concatena todos los campos de la cabecera del tipo concreto de paquete
      * @return Array de bytes que almacena los campos de la cabecera de forma secuencial, con el formato <TFTP><OpCode>
      */
-    public abstract byte[] compactCabecera();
+    byte[] compactHeader() throws IOException;
 
-    /**
-     * Función inversa a compactCabecera(), dado un array de bytes que almacenan los campos, dividir el array en función del opcode propio de cada operación TFTP
-     * @param input array de bytes recibidos del cliente, <TFTP><OpCode>
-     * @return cabecera que almacena los campos concatenados del array
-     */
-    public abstract Header descompactCabecera(byte[] input);
 }
