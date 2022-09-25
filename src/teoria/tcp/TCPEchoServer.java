@@ -1,5 +1,7 @@
 package teoria.tcp;
 
+import practicas.bolqueI.echoTCP.EchoTCPProtocol;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.Executor;
@@ -13,7 +15,7 @@ public class TCPEchoServer {
         Executor service = Executors.newCachedThreadPool();
 
         while (true){
-            service.execute(new EchoProtocol(serverSocket.accept(), logger));
+            service.execute(new EchoTCPProtocol(serverSocket.accept(), logger));
         }
     }
 }
