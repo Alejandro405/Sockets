@@ -1,9 +1,8 @@
-package practicas.bolqueII.tftp.handlers;
+package practicas.bolqueII.tftp.handlers.server;
 
 import java.net.DatagramSocket;
 
-public class RRQHandler implements Handler{
-
+public class WRQHandler implements Handler{
     @Override
     public void atenderPeticion(DatagramSocket serverSocket) {
 

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
@@ -19,11 +18,10 @@ public class echoUDPHandler extends Thread{
     private int tid;
     private static final String FIN =  ".";
 
-    public echoUDPHandler(DatagramPacket datagram, DatagramSocket serverSocket) {
+    public echoUDPHandler(DatagramPacket datagram) {
         tid = datagram.getPort();
         address = datagram.getAddress();
         datos = datagram.getData();
-        socket = serverSocket;
     }
 
     /**
