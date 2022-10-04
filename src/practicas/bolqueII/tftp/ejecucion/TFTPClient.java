@@ -1,4 +1,4 @@
-package practicas.bolqueII.tftp;
+package practicas.bolqueII.tftp.ejecucion;
 
 import practicas.bolqueII.tftp.handlers.client.TFTPClientHandler;
 

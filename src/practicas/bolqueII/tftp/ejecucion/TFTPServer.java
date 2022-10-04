@@ -1,4 +1,4 @@
-package practicas.bolqueII.tftp;
+package practicas.bolqueII.tftp.ejecucion;
 
 import java.io.IOException;
 import java.net.*;

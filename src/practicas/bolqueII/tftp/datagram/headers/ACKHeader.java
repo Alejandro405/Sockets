@@ -3,6 +3,7 @@ package practicas.bolqueII.tftp.datagram.headers;
 import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
 
 import java.io.*;
+import java.net.DatagramPacket;
 
 public class ACKHeader implements Header {
     private static final short opCode = 4;
@@ -19,6 +20,10 @@ public class ACKHeader implements Header {
     public ACKHeader() {
     }
 
+    public ACKHeader(DatagramPacket packet) {
+
+    }
+
     @Override
     public byte[] compactHeader() throws IOException {
         ByteArrayOutputStream aux = new ByteArrayOutputStream();
@@ -32,5 +37,10 @@ public class ACKHeader implements Header {
 
     private static void decode(ACKHeader header, DataInputStream inputStream) throws IOException {
         header.blockId = inputStream.readShort();
+    }
+
+    public DatagramPacket getDatagramPacket() {
+
+        return null;
     }
 }

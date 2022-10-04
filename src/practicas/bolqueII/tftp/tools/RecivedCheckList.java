@@ -1,6 +1,7 @@
 package practicas.bolqueII.tftp.tools;
 
 import javax.swing.text.html.HTMLDocument;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -52,5 +53,17 @@ public class RecivedCheckList {
         } else {
             throw new DuplicatedBlockException("Este bloque de datos ya ha sido recivido");
         }
+    }
+
+    public <T> T[] concatenate(T[] a, T[] b) {
+        int aLen = a.length;
+        int bLen = b.length;
+
+        @SuppressWarnings("unchecked")
+        T[] c = (T[]) Array.newInstance(a.getClass().getComponentType(), aLen + bLen);
+        System.arraycopy(a, 0, c, 0, aLen);
+        System.arraycopy(b, 0, c, aLen, bLen);
+
+        return c;
     }
 }

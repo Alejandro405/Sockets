@@ -1,0 +1,20 @@
+https://stackoverflow.com/questions/1769776/how-can-i-write-a-byte-array-to-a-file-in-java
+
+String filename= "C:/SO/SOBufferedOutputStreamAnswer";
+BufferedOutputStream bos = null;
+try {
+//create an object of FileOutputStream
+FileOutputStream fos = new FileOutputStream(new File(filename));
+
+//create an object of BufferedOutputStream
+bos = new BufferedOutputStream(fos);
+
+KeyGenerator kgen = KeyGenerator.getInstance("AES");
+kgen.init(128);
+SecretKey key = kgen.generateKey();
+byte[] encoded = key.getEncoded();
+
+bos.write(encoded);
+
+}
+// catch and handle exceptions...
