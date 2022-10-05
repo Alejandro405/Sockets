@@ -22,6 +22,11 @@ public class ErrorHeader implements Header {
     public ErrorHeader() {
     }
 
+    protected ErrorHeader(short errorCode, String errorMsg) {
+        this.errorCode = errorCode;
+        this.errorMessage = errorMsg;
+    }
+
     @Override
     public byte[] compactHeader() throws IOException {
         ByteArrayOutputStream aux = new ByteArrayOutputStream();

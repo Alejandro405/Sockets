@@ -6,14 +6,14 @@ import java.io.*;
 import java.net.DatagramPacket;
 
 public class ACKHeader implements Header {
-    private static final short opCode = 4;
+    private static short opCode = 4;
     private short blockId;
 
     public ACKHeader(byte[] input) throws IOException {
         decode(this, new DataInputStream(new ByteArrayInputStream(input)));
     }
 
-    public ACKHeader(short blockId) {
+    protected ACKHeader(short blockId) {
         this.blockId = blockId;
     }
 

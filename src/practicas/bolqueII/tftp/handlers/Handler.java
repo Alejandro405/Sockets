@@ -1,4 +1,4 @@
-package practicas.bolqueII.tftp.handlers.server;
+package practicas.bolqueII.tftp.handlers;
 
 import java.net.DatagramSocket;
 

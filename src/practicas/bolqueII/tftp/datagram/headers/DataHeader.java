@@ -15,7 +15,7 @@ public class DataHeader implements Header {
         decode(this, new DataInputStream(new ByteArrayInputStream(input)));
     }
 
-    public DataHeader(short blockId, byte[] data) {
+    protected DataHeader(short blockId, byte[] data) {
         this.blockId = blockId;
         this.data = data;
     }
