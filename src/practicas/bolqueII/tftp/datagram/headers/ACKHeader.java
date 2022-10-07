@@ -4,9 +4,10 @@ import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
 
 import java.io.*;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 
 public class ACKHeader implements Header {
-    private static short opCode = 4;
+    private static final short opCode = 4;
     private short blockId;
 
     public ACKHeader(byte[] input) throws IOException {
@@ -33,6 +34,11 @@ public class ACKHeader implements Header {
         res.writeShort(blockId);
 
         return aux.toByteArray();
+    }
+
+    @Override
+    public DatagramPacket encapsulate(InetAddress address, int port) {
+        return null;
     }
 
     private static void decode(ACKHeader header, DataInputStream inputStream) throws IOException {

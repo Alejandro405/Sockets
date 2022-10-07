@@ -4,6 +4,8 @@ import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
 
 import javax.xml.crypto.Data;
 import java.io.*;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 
 public class DataHeader implements Header {
@@ -33,6 +35,11 @@ public class DataHeader implements Header {
         res.write(data);
 
         return aux.toByteArray();
+    }
+
+    @Override
+    public DatagramPacket encapsulate(InetAddress address, int port) {
+        return null;
     }
 
     private static void decode(DataHeader header, DataInputStream inputStream) throws IOException {

@@ -17,7 +17,7 @@ public class tests {
 
     public static final String ANSI_RESET = "\u001B[0m";
 
-    private static String sFolder = System.getProperty("user.dir");
+    private static final String sFolder = System.getProperty("user.dir");
 
     public static void main(String[] args) throws IOException {
         /**
@@ -33,7 +33,7 @@ public class tests {
          *         }
          *
          *
-         *         System.out.println(new prueba.txt(new int[]{1, 2, 2}).toString());
+         *         System.out.println(new texto.txt(new int[]{1, 2, 2}).toString());
          *
          *
          *         System.out.println(Arrays.deepToString(result.toArray()));
@@ -42,13 +42,13 @@ public class tests {
          */
 
         //String filename = "C:\\Users\\Usuario\\IdeaProjects\\Sockets\\src\\practicas\\bolqueII\\tftp";
-        String filename = "prueba.txt";
+        String filename = "texto.txt";
         /**
          * Testeo ficheros y byte[]
          */
         //Lectura
-        //File txt = new File(filename + "\\prueba.txt");
-        File txt = new File(System.getProperty("user.dir") + "/prueba.txt");
+        //File txt = new File(filename + "\\texto.txt");
+        File txt = new File(System.getProperty("user.dir") + "/texto.txt");
 
         byte[] datos = Files.readAllBytes(txt.toPath());
         System.out.println("Tamaño de bites del fichero: " + datos.length);
@@ -60,7 +60,7 @@ public class tests {
         if (!clientFolder.exists())
             clientFolder.mkdirs();
 
-        File file = new File(clientFolder, "prueba.txt");
+        File file = new File(clientFolder, "texto.txt");
         file.setWritable(true);
         FileOutputStream salida = new FileOutputStream(file);
         BufferedOutputStream out = new BufferedOutputStream(salida);

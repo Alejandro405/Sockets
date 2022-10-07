@@ -2,7 +2,7 @@ package practicas.bolqueII.tftp.ejecucion;
 
 import java.io.IOException;
 import java.net.*;
-import static teoria.udp.ServerUDP.ECHOMAX;
+import static teoria.udp.filetransfer.ServerUDP.ECHOMAX;
 
 public class TFTPServer {
     private static final int TIME_OUT = 100;

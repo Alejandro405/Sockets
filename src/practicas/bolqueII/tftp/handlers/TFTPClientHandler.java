@@ -3,6 +3,7 @@ package practicas.bolqueII.tftp.handlers;
 import practicas.bolqueII.tftp.datagram.headers.ACKHeader;
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
 import practicas.bolqueII.tftp.tools.OutOfTriesException;
+import practicas.bolqueII.tftp.tools.StopAndWaitProtocol;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -30,7 +31,7 @@ public class TFTPClientHandler{
     private String fileName;
 
     private static final int MAX_TRIES = 5;
-    private static String sFolder = System.getProperty("user.dir");
+    private static final String sFolder = System.getProperty("user.dir");
 
 
 
@@ -99,37 +100,42 @@ public class TFTPClientHandler{
         if (!txt.exists())
             throw new NoSuchFileException("ERROR: Fichero no encontrado para el envío");
 
-        DatagramPacket packet = null;
-        byte[] data = Files.readAllBytes(txt.toPath());
-        int i = 0, tries = 0;
-        short idBlock = 1;
-        while (i < 512 && tries < MAX_TRIES) {
-            packet =  new DatagramPacket(data, i, i + 512);headerFactory.getDataHeader(idBlock, Arrays.copyOfRange(data, i, i + 512));
-            //packet = HeaderFactory.getDataBlock((short) 3, (short) idBlock, Arrays.copyOfRange(data, i, i + 512));
-            clientSocket.send(packet);
-            clientSocket.setSoTimeout(1000);
-            try{
-                do{
-                    clientSocket.receive(packet);
-                } while (!errorFreeACK(packet, serverTID, serverName));
-            } catch (SocketTimeoutException e){
-                tries += 1;
-                System.err.println("[ERROR] Tiempo de time-out Superado");
-            }
+        StopAndWaitProtocol.sendFile(clientSocket, txt, serverName, serverTID);
+
+        /**
+         *  DatagramPacket packet = null;
+         *         byte[] data = Files.readAllBytes(txt.toPath());
+         *         int i = 0, tries = 0;
+         *         short idBlock = 1;
+         *         while (i < 512 && tries < MAX_TRIES) {
+         *             packet =  new DatagramPacket(data, i, i + 512);headerFactory.getDataHeader(idBlock, Arrays.copyOfRange(data, i, i + 512));
+         *             //packet = HeaderFactory.getDataBlock((short) 3, (short) idBlock, Arrays.copyOfRange(data, i, i + 512));
+         *             clientSocket.send(packet);
+         *             clientSocket.setSoTimeout(1000);
+         *             try{
+         *                 do{
+         *                     clientSocket.receive(packet);
+         *                 } while (!errorFreeACK(packet, serverTID, serverName));
+         *             } catch (SocketTimeoutException e){
+         *                 tries += 1;
+         *                 System.err.println("[ERROR] Tiempo de time-out Superado");
+         *             }
 
 
-        }
+         *         }
 
-        if (tries >= MAX_TRIES){
-            //Error numero de intentos superados, finalizar comunicación, recuperar estado.
-            //packet = HeaderFactory.getErrorPack(TRIES_ERROR, "[ERROR] Se han superado el número de intentos de retransmision");
-            packet = new DatagramPacket(headerFactory
-                                            .getErrorHeader(TRIES_ERROR, MAX_TRIES_ERROR_MSG)
-                                            .compactHeader()
-                                       , MAX_TRIES_ERROR_MSG.length() + 2);
-            // El método púlbico será el encargado limpiar el proceso y salvar estado anterior
-            throw new OutOfTriesException("[ERROR] Se han superado el número de intentos de retransmision");
-        }
+         *         if (tries >= MAX_TRIES){
+         *             //Error numero de intentos superados, finalizar comunicación, recuperar estado.
+         *             //packet = HeaderFactory.getErrorPack(TRIES_ERROR, "[ERROR] Se han superado el número de intentos de retransmision");
+         *             packet = new DatagramPacket(headerFactory
+         *                                             .getErrorHeader(TRIES_ERROR, MAX_TRIES_ERROR_MSG)
+         *                                             .compactHeader()
+         *                                        , MAX_TRIES_ERROR_MSG.length() + 2);
+         *             // El método púlbico será el encargado limpiar el proceso y salvar estado anterior
+         *             throw new OutOfTriesException("[ERROR] Se han superado el número de intentos de retransmision");
+         *         }
+         */
+
 
 
 
@@ -154,6 +160,9 @@ public class TFTPClientHandler{
         if (!serverFolder.exists())
             serverFolder.mkdirs();
 
+
+        StopAndWaitProtocol.attendDowload(clientSocket, serverFolder, serverName, serverTID);
+        /**
         FileOutputStream file = new FileOutputStream(serverFolder + fileName);
         BufferedOutputStream out = new BufferedOutputStream(file);
         DatagramPacket packet = new DatagramPacket(new byte[512], 512);
@@ -173,10 +182,9 @@ public class TFTPClientHandler{
         } while (!finalizado);
 
         file.close();
+         */
     }
 
-    private boolean isValid(DatagramPacket packet, int serverTID, InetAddress serverName) {
-        return false;
-    }
+
 
 }

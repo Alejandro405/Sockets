@@ -17,7 +17,7 @@ public class prueba {
 
     @Override
     public String toString() {
-        return "prueba.txt{" +
+        return "texto.txt{" +
                 "id=" + id +
                 ", a=" + a +
                 ", p=" + p +

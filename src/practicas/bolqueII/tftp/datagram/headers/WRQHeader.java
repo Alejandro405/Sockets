@@ -4,6 +4,8 @@ import practicas.bolqueII.tftp.tools.TFTPHeaderFormatException;
 import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
 
 import java.io.*;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -36,6 +38,11 @@ public class WRQHeader implements Header {
         res.writeShort(DELIMITER);
 
         return aux.toByteArray();
+    }
+
+    @Override
+    public DatagramPacket encapsulate(InetAddress address, int port) {
+        return null;
     }
 
     private static void decode(WRQHeader header, DataInputStream inputStream) throws IOException, TFTPHeaderFormatException {

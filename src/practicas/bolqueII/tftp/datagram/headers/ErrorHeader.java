@@ -3,6 +3,8 @@ package practicas.bolqueII.tftp.datagram.headers;
 import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
 
 import java.io.*;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -38,6 +40,11 @@ public class ErrorHeader implements Header {
         res.writeShort(DELIMITER);
 
         return aux.toByteArray();
+    }
+
+    @Override
+    public DatagramPacket encapsulate(InetAddress address, int port) {
+        return null;
     }
 
     private static void decode(ErrorHeader header, DataInputStream inputStream, int length) throws IOException {
