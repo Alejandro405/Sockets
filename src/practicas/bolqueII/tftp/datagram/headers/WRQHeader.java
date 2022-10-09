@@ -35,14 +35,33 @@ public class WRQHeader implements Header {
         res.writeChars(fileName);
         res.writeShort(DELIMITER);
         res.writeChars(Mode);
-        res.writeShort(DELIMITER);
+        res.writeByte(DELIMITER);
 
         return aux.toByteArray();
     }
 
     @Override
     public DatagramPacket encapsulate(InetAddress address, int port) {
-        return null;
+        byte[] TFTPData = null;
+        while (TFTPData == null)
+        {
+            try {
+                TFTPData = this.compactHeader();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+
+        return new DatagramPacket(TFTPData, TFTPData.length, address, port);
+    }
+
+    @Override
+    public int getOpCode() {
+        return opCode;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     private static void decode(WRQHeader header, DataInputStream inputStream) throws IOException, TFTPHeaderFormatException {

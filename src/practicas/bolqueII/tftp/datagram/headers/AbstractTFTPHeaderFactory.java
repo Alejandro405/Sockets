@@ -13,4 +13,8 @@ public interface AbstractTFTPHeaderFactory {
     ErrorHeader getErrorHeader(short errorCode, String errorMsg);
 
     Header createHeader(byte[] data) throws IOException, TFTPHeaderFormatException, UnsupportedTFTPOperation;// Deserialization
+
+    RRQHeader getRRQHeader(String name, String aByte);
+
+
 }

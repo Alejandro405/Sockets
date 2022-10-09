@@ -1,15 +1,19 @@
 package practicas.bolqueII.tftp.ejecucion;
 
+import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
+import practicas.bolqueII.tftp.datagram.headers.RRQHeader;
 import practicas.bolqueII.tftp.handlers.TFTPClientHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 public class TFTPClient {
-    private static final int PORT_SERVICE = 12345;
+    private static final int PORT_SERVICE = 55600;
     private static final String FIN_SERVICE = "quit";
+    private static final HeaderFactory headerFactory = new HeaderFactory();
 
     public static void main(String[] args) throws IOException {
         System.out.println("Bienvenido al servicio TFTP:\n"+
@@ -22,8 +26,8 @@ public class TFTPClient {
         String command = "";
         BufferedReader sys = new BufferedReader(new InputStreamReader(System.in));
 
-
-        TFTPClientHandler handler = null;
+        DatagramSocket clientSocket = new DatagramSocket();
+        TFTPClientHandler handler = new TFTPClientHandler(clientSocket, PORT_SERVICE);
         boolean finalizado = false;
         do {
             command = sys.readLine();
@@ -34,12 +38,16 @@ public class TFTPClient {
                 } else if (command.contains("connect")) {
                     // Cear un nuevo ClientHandler sobrescribiendo el anterior
                     String [] aux = command.split(" ");
-                    handler = new TFTPClientHandler(InetAddress.getByName(aux[1]));
+                    handler.setServerName(InetAddress.getByName(aux[1]));
                     System.out.println("Conexion establecida");
                 } else if (command.contains("get")) {
+                    String[] aux = command.split(" ");
+
                     // Cambiar modo de operación
-                    handler.setOpMode(command);
+
+                    handler.setOpMode("get");
                     handler.setCommand(command);
+                    handler.setFileName(aux[1]);
                     // Ejecutar peticion
                     handler.adttend();
                 } else if (command.contains("put")) {

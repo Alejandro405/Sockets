@@ -6,16 +6,9 @@ import practicas.bolqueII.tftp.tools.OutOfTriesException;
 import javax.xml.crypto.Data;
 import java.io.File;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketTimeoutException;
-import java.nio.file.Files;
-import java.util.Arrays;
-
-import static practicas.bolqueII.tftp.handlers.TFTPClientHandler.MAX_TRIES;
 
 public class ServerUDP {
-public static final int ECHOMAX = 255; // Tamagno maximo de los mensajes
+	public static final int ECHOMAX = 255; // Tamagno maximo de los mensajes
 	private static final File sFolder = new File(System.getProperty("user.dir") + "/src/teoria/udp/filetransfer/server");
 	private static final HeaderFactory headerFactory = new HeaderFactory();
 	private static final int MAX_TRIES = 5;
@@ -26,7 +19,7 @@ public static final int ECHOMAX = 255; // Tamagno maximo de los mensajes
 	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
-
+		/*
 		File txt = new File(sFolder.toPath() + "texto.txt");
 
 		DatagramSocket clientSocket = new DatagramSocket(12345);
@@ -61,6 +54,6 @@ public static final int ECHOMAX = 255; // Tamagno maximo de los mensajes
 					, MAX_TRIES_ERROR_MSG.length() + 2);
 			// El método púlbico será el encargado limpiar el proceso y salvar estado anterior
 			throw new OutOfTriesException("[ERROR] Se han superado el número de intentos de retransmision");
-		}
+		}*/
 	}
 }

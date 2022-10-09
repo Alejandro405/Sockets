@@ -39,7 +39,31 @@ public class DataHeader implements Header {
 
     @Override
     public DatagramPacket encapsulate(InetAddress address, int port) {
+        byte[] TFTPData = null;
+        while (TFTPData == null)
+        {
+            try {
+                TFTPData = this.compactHeader();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+
+        return new DatagramPacket(TFTPData, TFTPData.length, address, port);
+    }
+
+    @Override
+    public int getOpCode() {
+        return opCode;
+    }
+
+    @Override
+    public String getFileName() {
         return null;
+    }
+
+    public short getBlockId() {
+        return blockId;
     }
 
     private static void decode(DataHeader header, DataInputStream inputStream) throws IOException {

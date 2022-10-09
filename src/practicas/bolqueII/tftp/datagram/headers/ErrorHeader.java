@@ -37,14 +37,42 @@ public class ErrorHeader implements Header {
         res.writeShort(opCode);
         res.writeShort(errorCode);
         res.writeChars(errorMessage);
-        res.writeShort(DELIMITER);
+        res.writeByte(DELIMITER);
 
         return aux.toByteArray();
     }
 
     @Override
     public DatagramPacket encapsulate(InetAddress address, int port) {
+        byte[] TFTPData = null;
+        while (TFTPData == null)
+        {
+            try {
+                TFTPData = this.compactHeader();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+
+        return new DatagramPacket(TFTPData, TFTPData.length, address, port);
+    }
+
+    @Override
+    public int getOpCode() {
+        return opCode;
+    }
+
+    @Override
+    public String getFileName() {
         return null;
+    }
+
+    public short getErrorCode() {
+        return errorCode;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 
     private static void decode(ErrorHeader header, DataInputStream inputStream, int length) throws IOException {

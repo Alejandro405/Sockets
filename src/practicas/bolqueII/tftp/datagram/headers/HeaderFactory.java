@@ -10,11 +10,11 @@ public class HeaderFactory implements AbstractTFTPHeaderFactory {
     private static final byte DELIMITER = 0;
     private static final int ACK_DATA_LENGTH = 500;
 
-    private static final short ACK_OPCODE = 4;
-    private static final short ERROR_OPCODE = 5;
-    private static final short DATA_OPCODE = 3;
-    private static final short WRQ_OPCODE = 2;
-    private static final short RRQ_OPCODE = 1;
+    public static final short ACK_OPCODE = 4;
+    public static final short ERROR_OPCODE = 5;
+    public static final short DATA_OPCODE = 3;
+    public static final short WRQ_OPCODE = 2;
+    public static final short RRQ_OPCODE = 1;
 
     @Override
     public ACKHeader getAckHeader(short blockId) {
@@ -38,7 +38,6 @@ public class HeaderFactory implements AbstractTFTPHeaderFactory {
         DataInputStream reader = new DataInputStream(new ByteArrayInputStream(input));
         Header newHeader = null;
 
-        reader.skipBytes(n - 2);
         opcode = reader.readShort();
 
         if (opcode == RRQ_OPCODE) {
@@ -57,4 +56,36 @@ public class HeaderFactory implements AbstractTFTPHeaderFactory {
 
         return newHeader;
     }
+
+    public RequestHeader createRequestHeader(byte[] input) throws IOException, TFTPHeaderFormatException, UnsupportedTFTPOperation {
+        DataInputStream reader = new DataInputStream(new ByteArrayInputStream(input));
+        short opCode = reader.readShort();
+        RequestHeader newHeader;
+
+        if (opCode == RRQ_OPCODE) {
+            newHeader = new RRQHeader(input);
+        } else if (opCode == WRQ_OPCODE) {
+            newHeader = new WRQHeader(input);
+        } else {
+            throw new UnsupportedTFTPOperation("No existe soporte para la operación deseada: "+opCode);
+        }
+
+
+        return newHeader;
+    }
+
+    @Override
+    public RRQHeader getRRQHeader(String name, String transferMode) {
+        return new RRQHeader(name, transferMode);
+    }
+
+    public DataHeader getDataHeader(byte[] data) throws IOException {
+        return new DataHeader(data);
+    }
+
+    public WRQHeader getWRQHeader(String fileName, String aByte) {
+        return new WRQHeader(fileName, aByte);
+    }
+
+
 }

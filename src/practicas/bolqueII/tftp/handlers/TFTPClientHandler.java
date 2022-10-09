@@ -1,7 +1,8 @@
 package practicas.bolqueII.tftp.handlers;
 
-import practicas.bolqueII.tftp.datagram.headers.ACKHeader;
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
+import practicas.bolqueII.tftp.datagram.headers.RRQHeader;
+import practicas.bolqueII.tftp.datagram.headers.WRQHeader;
 import practicas.bolqueII.tftp.tools.OutOfTriesException;
 import practicas.bolqueII.tftp.tools.StopAndWaitProtocol;
 
@@ -9,14 +10,15 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketTimeoutException;
+import java.net.SocketException;
 import java.nio.file.*;
-import java.util.Arrays;
 
 
 /**
- * Revisar esqueleto pseudocodigo
- * Revisar Refactorizacion código.
+ * Genera los datos necesarios para el envio del fichero mediante el protocoo de parada y espera:
+ *      -> Fichero donde se almacenara'an los datos provinientes del servidor extraidos del socket
+ *      -> TID de la transaccion para asegurar la autoria de los mensajes que se extraigan del socket
+ *      -> Direcciones de nivel de red y transporte del servidor
  */
 public class TFTPClientHandler{
     private static final short TRIES_ERROR = 1;
@@ -48,6 +50,15 @@ public class TFTPClientHandler{
         serverName = byName;
     }
 
+    public TFTPClientHandler(DatagramSocket clientSocket) throws SocketException {
+        this.clientSocket = clientSocket;
+    }
+
+    public TFTPClientHandler(DatagramSocket clientSocket, int portService) {
+        this.clientSocket = clientSocket;
+        this.serverTID = portService;
+    }
+
     public void setMode(String mode) {
         this.mode = mode;
     }
@@ -73,10 +84,17 @@ public class TFTPClientHandler{
     }
 
     public void adttend() throws IOException {
+        // Generar petici'on para el servidor
         if (opMode.compareToIgnoreCase("get") == 0) {
+            RRQHeader requestMessage = headerFactory.getRRQHeader(fileName, "Byte");
+
+            clientSocket.send(requestMessage.encapsulate(serverName, serverTID));
             attendGetRequest();
         } else if (opMode.compareToIgnoreCase("put") == 0) {
             try {
+                WRQHeader requestMessage = headerFactory.getWRQHeader(fileName, "Byte");
+                clientSocket.send(requestMessage.encapsulate(serverName, serverTID));
+
                 attendPutRequest();
             } catch (OutOfTriesException e) {
                 System.err.println(e.getMessage());
@@ -96,7 +114,7 @@ public class TFTPClientHandler{
      * Sender Parada Espera
      */
     private void attendPutRequest() throws IOException, OutOfTriesException {
-        File txt = new File(sFolder+"/TFTPClient/data"+fileName);
+        File txt = new File(sFolder+"/TFTPClient/data/"+fileName);
         if (!txt.exists())
             throw new NoSuchFileException("ERROR: Fichero no encontrado para el envío");
 
@@ -152,18 +170,16 @@ public class TFTPClientHandler{
         return false;
     }
 
-    /**
-     * Recepcion de fichero, modo reciver de parada y espera
-     */
+
     private void attendGetRequest() throws IOException {
         File serverFolder = new File(sFolder + "/TFTPClient/sessions/" + serverTID);
         if (!serverFolder.exists())
             serverFolder.mkdirs();
 
+        File strFile = new File(serverFolder.toPath() + "/" + fileName);
+        StopAndWaitProtocol.attendDownload(clientSocket, strFile, serverName, serverTID);
 
-        StopAndWaitProtocol.attendDowload(clientSocket, serverFolder, serverName, serverTID);
-        /**
-        FileOutputStream file = new FileOutputStream(serverFolder + fileName);
+        /*FileOutputStream file = new FileOutputStream(serverFolder + fileName);
         BufferedOutputStream out = new BufferedOutputStream(file);
         DatagramPacket packet = new DatagramPacket(new byte[512], 512);
         boolean finalizado = false;
@@ -182,9 +198,15 @@ public class TFTPClientHandler{
         } while (!finalizado);
 
         file.close();
-         */
+        */
     }
 
 
+    public void setFileName(String aux) {
+        this.fileName = aux;
+    }
 
+    public void setServerName(InetAddress byName) {
+        this.serverName = byName;
+    }
 }

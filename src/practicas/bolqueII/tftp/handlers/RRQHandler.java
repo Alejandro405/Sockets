@@ -1,7 +1,5 @@
 package practicas.bolqueII.tftp.handlers;
 
-import java.net.DatagramSocket;
-
-public class RRQHandler implements Handler{
+public class RRQHandler {
 
 }

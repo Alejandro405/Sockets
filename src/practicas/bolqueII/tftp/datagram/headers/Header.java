@@ -12,7 +12,7 @@ import java.net.InetAddress;
  *
  */
 public interface Header {
-    static final byte DELIMITER = 0;
+    byte DELIMITER = 35;// "#"
 
 
     /**
@@ -29,4 +29,7 @@ public interface Header {
      */
     DatagramPacket encapsulate(InetAddress address, int port);
 
+    int getOpCode();
+
+    String getFileName();
 }
