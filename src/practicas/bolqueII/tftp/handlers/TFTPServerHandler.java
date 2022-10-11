@@ -1,11 +1,17 @@
 package practicas.bolqueII.tftp.handlers;
 
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
+import practicas.bolqueII.tftp.tools.StopAndWaitProtocol;
 
-import java.io.File;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
+import java.util.Arrays;
+
+import static practicas.bolqueII.tftp.datagram.headers.HeaderFactory.RRQ_OPCODE;
+import static practicas.bolqueII.tftp.datagram.headers.HeaderFactory.WRQ_OPCODE;
 
 public class TFTPServerHandler {
     private static final HeaderFactory headerFactory = new HeaderFactory();
@@ -50,9 +56,53 @@ public class TFTPServerHandler {
         this.operationMode = opCode;
     }
 
-    public void attend(){
+    /**
+     * Atender la petici'on recivida previamente por el servidor
+     */
+    public void attend()  {
+        try (DatagramSocket serviceSocket = new DatagramSocket()) {
+            this.socket = serviceSocket;
+            if (operationMode == RRQ_OPCODE){
+                attendGetClientRequest(); // La confirmacion de recepción de req se realiza con el primer bloque de datos
+            } else if (operationMode == WRQ_OPCODE) {
+                serviceSocket.send(headerFactory.getAckHeader((short) 0).encapsulate(clientInetAddress, clientTID));
+                attendPutClientRequest();
+            } else {
+                System.err.println(" asdfasdfasf");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
 
     }
+
+    /**
+     * La peticion WRQ del cliente ha de ser ciobfirmada con el primer bloque de datos
+     */
+    private void attendPutClientRequest() {
+        File strFile = new File(sFolder.toPath() + "/sessions/" + fileName);
+        try (FileOutputStream outFile = new FileOutputStream(strFile)) {
+
+            StopAndWaitProtocol.attendDownload(socket, new BufferedOutputStream(outFile), clientInetAddress, clientTID);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void attendGetClientRequest() {
+        File datafile = new File(sFolder + "/TFTPServer/data/" + fileName);
+        try {
+            String line = datafile.getPath();
+            StopAndWaitProtocol.sendFile(socket, datafile, clientInetAddress, clientTID);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /*
+    [67, 58, 92, 85, 115, 101, 114, 115, 92, 85, 115, 117, 97, 114, 105, 111, 92, 73, 100, 101, 97, 80, 114, 111, 106, 101, 99, 116, 115, 92, 83, 111, 99, 107, 101, 116, 115, 92, 84, 70, 84, 80, 83, 101, 114, 118, 101, 114, 92, 100, 97, 116, 97, 92, 0, 116, 0, 101, 0, 120, 0, 116, 0, 111, 0, 46, 0, 116, 0, 120, 0, 116]
+     */
 
     public void setFileName(String fileName) {
         this.fileName = fileName;

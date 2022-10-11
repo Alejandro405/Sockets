@@ -53,7 +53,7 @@ public class DataHeader implements Header {
     }
 
     @Override
-    public int getOpCode() {
+    public short getOpCode() {
         return opCode;
     }
 
@@ -67,6 +67,7 @@ public class DataHeader implements Header {
     }
 
     private static void decode(DataHeader header, DataInputStream inputStream) throws IOException {
+        inputStream.readShort();// short correspondiente al opCode
         header.blockId = inputStream.readShort();
         header.data = inputStream.readAllBytes();
     }

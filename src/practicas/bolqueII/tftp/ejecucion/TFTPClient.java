@@ -62,6 +62,7 @@ public class TFTPClient {
                 } else {
                     System.out.println("Comando no soportado, pruebe de nuevo");
                 }
+
             } catch (NullPointerException e) {
                 System.err.println("Error no se ha establecido conexion."+e.getMessage());
             }

@@ -27,7 +27,7 @@ public class ACKHeader implements Header {
     }
 
     @Override
-    public int getOpCode() {
+    public short getOpCode() {
         return opCode;
     }
 
@@ -46,7 +46,7 @@ public class ACKHeader implements Header {
 
     @Override
     public byte[] compactHeader() throws IOException {
-        ByteArrayOutputStream aux = new ByteArrayOutputStream();
+        ByteArrayOutputStream aux = new ByteArrayOutputStream(4);
         DataOutputStream res = new DataOutputStream(aux);
 
         res.writeShort(opCode);
@@ -91,6 +91,7 @@ public class ACKHeader implements Header {
      * @throws IOException en caso de que el inputStream no funcione correctamente
      */
     private static void decode(ACKHeader header, DataInputStream inputStream) throws IOException {
+        inputStream.readShort();
         header.blockId = inputStream.readShort();
     }
 }

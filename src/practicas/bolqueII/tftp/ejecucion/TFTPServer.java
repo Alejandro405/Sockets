@@ -38,26 +38,18 @@ public class TFTPServer {
                 req = headerFactory.createRequestHeader(Arrays.copyOf(requestPacket.getData(), requestPacket.getLength()));
                 clientInetAdress = requestPacket.getAddress();
                 clientTID = requestPacket.getPort();
-
+                String fileName = req.getFileName();
                 if (req.getOpCode() == RRQ_OPCODE){
-                    String fileName = req.getFileName();
                     handler = new TFTPServerHandler(socket, fileName, RRQ_OPCODE, clientInetAdress, clientTID);
-                    handler.attend();
                 } else if (req.getOpCode() == WRQ_OPCODE) {
-                    String fileName = req.getFileName();
                     handler = new TFTPServerHandler(socket, fileName, WRQ_OPCODE, clientInetAdress, clientTID);
-                    handler.attend();
-                }else if (req.getOpCode() == DATA_OPCODE) {
-                    System.err.println("[WARNING] DataPacket recivido sin inicio de transacci'on");
-                }else if (req.getOpCode() == ACK_OPCODE) {
-                    System.err.println("[WARNING] AckPacket recivido sin inicio de transacci'on");
-                }else if (req.getOpCode() == ERROR_OPCODE) {
-                    System.err.println("[WARNING] ErrorPacket recivido sin inicio de transacci'on");
+                } else if (req.getOpCode() == DATA_OPCODE || req.getOpCode() == ACK_OPCODE || req.getOpCode() == ERROR_OPCODE) {
+                    throw new UnsupportedTFTPOperation("[WARNING] DataPacket recivido sin inicio de transacci'on");
                 } else {
                     throw new UnsupportedOperationException("[ERROR] Fallo al recibir petici'on. Petici'on recivida");
                 }
 
-
+                handler.attend();
             } catch (IOException | UnsupportedTFTPOperation | TFTPHeaderFormatException e) {
                 System.err.println(e.getMessage());
             }

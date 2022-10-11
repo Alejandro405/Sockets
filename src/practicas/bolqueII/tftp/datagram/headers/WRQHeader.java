@@ -9,71 +9,16 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class WRQHeader implements Header {
-    private static final short opCode = 2;
-    private String fileName;
-    private String Mode;
-
+public class WRQHeader extends RequestHeader {
     public WRQHeader(byte[] input) throws IOException, TFTPHeaderFormatException {
-        decode(this, new DataInputStream(new ByteArrayInputStream(input)));
+        super(input);
     }
 
     public WRQHeader(String fileName, String mode) {
-        this.fileName = fileName;
-        Mode = mode;
+        super(fileName, mode, (short) 2);
     }
 
     public WRQHeader() {
-    }
-
-    @Override
-    public byte[] compactHeader() throws IOException {
-        ByteArrayOutputStream aux = new ByteArrayOutputStream();
-        DataOutputStream res = new DataOutputStream(aux);
-
-        res.writeShort(opCode);
-        res.writeChars(fileName);
-        res.writeShort(DELIMITER);
-        res.writeChars(Mode);
-        res.writeByte(DELIMITER);
-
-        return aux.toByteArray();
-    }
-
-    @Override
-    public DatagramPacket encapsulate(InetAddress address, int port) {
-        byte[] TFTPData = null;
-        while (TFTPData == null)
-        {
-            try {
-                TFTPData = this.compactHeader();
-            } catch (IOException e) {
-                System.err.println(e.getMessage());
-            }
-        }
-
-        return new DatagramPacket(TFTPData, TFTPData.length, address, port);
-    }
-
-    @Override
-    public int getOpCode() {
-        return opCode;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    private static void decode(WRQHeader header, DataInputStream inputStream) throws IOException, TFTPHeaderFormatException {
-        inputStream.skipBytes(2);
-        String mode_name = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        String[] aux = mode_name.split(String.valueOf(DELIMITER));
-
-        if (aux.length == 2){
-            header.fileName = aux[0];
-            header.Mode = aux[1];
-        } else {
-            throw new TFTPHeaderFormatException("Error: formato de paquete erróneo. <OpCode><Filename><0><Mode><0> ["+mode_name+"]");
-        }
+        super();
     }
 }

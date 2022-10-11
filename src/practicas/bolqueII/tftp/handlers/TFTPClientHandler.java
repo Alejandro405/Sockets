@@ -1,5 +1,6 @@
 package practicas.bolqueII.tftp.handlers;
 
+import practicas.bolqueII.tftp.datagram.headers.ACKHeader;
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
 import practicas.bolqueII.tftp.datagram.headers.RRQHeader;
 import practicas.bolqueII.tftp.datagram.headers.WRQHeader;
@@ -12,6 +13,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.file.*;
+import java.util.Arrays;
 
 
 /**
@@ -93,7 +95,7 @@ public class TFTPClientHandler{
         } else if (opMode.compareToIgnoreCase("put") == 0) {
             try {
                 WRQHeader requestMessage = headerFactory.getWRQHeader(fileName, "Byte");
-                clientSocket.send(requestMessage.encapsulate(serverName, serverTID));
+                clientSocket.send(requestMessage.encapsulate(serverName, serverTID)); // Servidor a de responder con un ACK(0)
 
                 attendPutRequest();
             } catch (OutOfTriesException e) {
@@ -118,44 +120,16 @@ public class TFTPClientHandler{
         if (!txt.exists())
             throw new NoSuchFileException("ERROR: Fichero no encontrado para el envío");
 
-        StopAndWaitProtocol.sendFile(clientSocket, txt, serverName, serverTID);
 
-        /**
-         *  DatagramPacket packet = null;
-         *         byte[] data = Files.readAllBytes(txt.toPath());
-         *         int i = 0, tries = 0;
-         *         short idBlock = 1;
-         *         while (i < 512 && tries < MAX_TRIES) {
-         *             packet =  new DatagramPacket(data, i, i + 512);headerFactory.getDataHeader(idBlock, Arrays.copyOfRange(data, i, i + 512));
-         *             //packet = HeaderFactory.getDataBlock((short) 3, (short) idBlock, Arrays.copyOfRange(data, i, i + 512));
-         *             clientSocket.send(packet);
-         *             clientSocket.setSoTimeout(1000);
-         *             try{
-         *                 do{
-         *                     clientSocket.receive(packet);
-         *                 } while (!errorFreeACK(packet, serverTID, serverName));
-         *             } catch (SocketTimeoutException e){
-         *                 tries += 1;
-         *                 System.err.println("[ERROR] Tiempo de time-out Superado");
-         *             }
+        // Reestableciendo TID
+        DatagramPacket ackRequest = new DatagramPacket(new byte[512], 512);
 
+        do {
+            clientSocket.receive(ackRequest);
+        } while (!ackRequest.getAddress().equals(serverName));
+        serverTID = ackRequest.getPort();
 
-         *         }
-
-         *         if (tries >= MAX_TRIES){
-         *             //Error numero de intentos superados, finalizar comunicación, recuperar estado.
-         *             //packet = HeaderFactory.getErrorPack(TRIES_ERROR, "[ERROR] Se han superado el número de intentos de retransmision");
-         *             packet = new DatagramPacket(headerFactory
-         *                                             .getErrorHeader(TRIES_ERROR, MAX_TRIES_ERROR_MSG)
-         *                                             .compactHeader()
-         *                                        , MAX_TRIES_ERROR_MSG.length() + 2);
-         *             // El método púlbico será el encargado limpiar el proceso y salvar estado anterior
-         *             throw new OutOfTriesException("[ERROR] Se han superado el número de intentos de retransmision");
-         *         }
-         */
-
-
-
+        StopAndWaitProtocol.sendFile(clientSocket, txt, ackRequest);
 
     }
 
@@ -172,33 +146,27 @@ public class TFTPClientHandler{
 
 
     private void attendGetRequest() throws IOException {
-        File serverFolder = new File(sFolder + "/TFTPClient/sessions/" + serverTID);
-        if (!serverFolder.exists())
-            serverFolder.mkdirs();
+        File strFile = new File(sFolder
+                                    + "/TFTPClient/sessions/"
+                                    + fileName);
 
-        File strFile = new File(serverFolder.toPath() + "/" + fileName);
-        StopAndWaitProtocol.attendDownload(clientSocket, strFile, serverName, serverTID);
+        try (FileOutputStream outFile = new FileOutputStream(strFile)){
+            BufferedOutputStream out = new BufferedOutputStream(outFile);
+            DatagramPacket ackRequest = new DatagramPacket(new byte[512], 512);
+            clientSocket.receive(ackRequest);
+            serverName = ackRequest.getAddress();
+            serverTID = ackRequest.getPort();
 
-        /*FileOutputStream file = new FileOutputStream(serverFolder + fileName);
-        BufferedOutputStream out = new BufferedOutputStream(file);
-        DatagramPacket packet = new DatagramPacket(new byte[512], 512);
-        boolean finalizado = false;
-        do {
-            clientSocket.receive(packet);
-            if (packet.getLength() < 512) {
-                finalizado = true;
-            } else if (isValid(packet, serverTID, serverName)) {
-                out.write(packet.getData());
-                ACKHeader ack = headerFactory.getAckHeader((short) -1);
-                clientSocket.send(ack.getDatagramPacket());
-            } else {
-                // Trat de paquete no autorizado
-                clientSocket.send(packet);
-            }
-        } while (!finalizado);
+            out.write(Arrays.copyOf(ackRequest.getData(), ackRequest.getLength()));
 
-        file.close();
-        */
+            ACKHeader ack = headerFactory.getAckHeader((short) 1);
+            clientSocket.send(ack.encapsulate(ackRequest.getAddress(), ackRequest.getPort()));
+            StopAndWaitProtocol.attendDowload(clientSocket, out, ackRequest);
+        }catch (IOException e ){
+            System.err.println("[ERROR] " + e.getMessage());
+        }
+
+
     }
 
 

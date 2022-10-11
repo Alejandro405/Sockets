@@ -88,4 +88,7 @@ public class HeaderFactory implements AbstractTFTPHeaderFactory {
     }
 
 
+    public ACKHeader getAckHeader(byte[] copyOf) throws IOException {
+        return new ACKHeader(copyOf);
+    }
 }

@@ -29,7 +29,7 @@ public interface Header {
      */
     DatagramPacket encapsulate(InetAddress address, int port);
 
-    int getOpCode();
+    short getOpCode();
 
     String getFileName();
 }

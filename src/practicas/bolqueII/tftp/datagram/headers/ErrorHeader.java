@@ -58,7 +58,7 @@ public class ErrorHeader implements Header {
     }
 
     @Override
-    public int getOpCode() {
+    public short getOpCode() {
         return opCode;
     }
 
@@ -76,6 +76,7 @@ public class ErrorHeader implements Header {
     }
 
     private static void decode(ErrorHeader header, DataInputStream inputStream, int length) throws IOException {
+        inputStream.readShort();
         header.errorCode = inputStream.readShort();
         header.errorMessage = new String(inputStream.readNBytes(length - 5), StandardCharsets.UTF_8);
     }
