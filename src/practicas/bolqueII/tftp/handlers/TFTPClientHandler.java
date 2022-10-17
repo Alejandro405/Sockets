@@ -1,6 +1,7 @@
 package practicas.bolqueII.tftp.handlers;
 
 import practicas.bolqueII.tftp.datagram.headers.*;
+import practicas.bolqueII.tftp.tools.InterruptedTransmissionException;
 import practicas.bolqueII.tftp.tools.OutOfTriesException;
 import practicas.bolqueII.tftp.tools.StopAndWaitProtocol;
 
@@ -123,7 +124,12 @@ public class TFTPClientHandler{
         } while (!ackRequest.getAddress().equals(serverName));
         serverTID = ackRequest.getPort();
 
-        StopAndWaitProtocol.sendFile(clientSocket, txt, ackRequest);
+
+        try {
+            StopAndWaitProtocol.sendFile(clientSocket, txt, ackRequest);
+        } catch (InterruptedTransmissionException e) {
+            System.err.println(e.getMessage());
+        }
 
     }
 
@@ -146,7 +152,12 @@ public class TFTPClientHandler{
 
             ACKHeader ack = headerFactory.getAckHeader(firstDatablock.getBlockId());
             clientSocket.send(ack.encapsulate(ackRequest.getAddress(), ackRequest.getPort()));
-            StopAndWaitProtocol.attendDowload(clientSocket, out, ackRequest, firstDatablock.getBlockId() + 1);
+            try {
+                StopAndWaitProtocol.attendDowload(clientSocket, out, ackRequest, firstDatablock.getBlockId() + 1);
+            } catch (InterruptedTransmissionException e) {
+                System.err.println(e.getMessage());
+                strFile.delete();
+            }
         }catch (IOException e ){
             String aux = "[ERROR] " + e.getMessage();
             System.err.println(aux);
