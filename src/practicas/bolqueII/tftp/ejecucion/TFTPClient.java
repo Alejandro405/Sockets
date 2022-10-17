@@ -22,6 +22,7 @@ public class TFTPClient {
                                 "\tLectura/Descarga de fichero -> get <fichero>\n"+
                                 "\tEscritura/envío de fichero -> put <fichero>\n"+
                                 "\tFinalización del servicio -> quit\n");
+        System.out.print(">");
 
         String command = "";
         BufferedReader sys = new BufferedReader(new InputStreamReader(System.in));
@@ -51,21 +52,28 @@ public class TFTPClient {
                     // Ejecutar peticion
                     handler.adttend();
                 } else if (command.contains("put")) {
-                    //Cabiar modo de operacion
-                    handler.setOpMode(command);
+                    String[] aux = command.split(" ");
+
+                    // Cambiar modo de operación
+
+                    handler.setOpMode("put");
                     handler.setCommand(command);
+                    handler.setFileName(aux[1]);
                     // Ejecutar peticion
                     handler.adttend();
                 } else if (command.contains("quit")) {
                     finalizado = true;
                     handler = null;
                 } else {
-                    System.out.println("Comando no soportado, pruebe de nuevo");
+                    System.err.println("Comando no soportado, pruebe de nuevo");
+                    System.out.print(">");
                 }
 
+                //handler.setTID(PORT_SERVICE);
             } catch (NullPointerException e) {
                 System.err.println("Error no se ha establecido conexion."+e.getMessage());
             }
+            System.out.println("Comando atendido con éxito");
 
         } while (!finalizado);
     }

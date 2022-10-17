@@ -1,9 +1,11 @@
 package practicas.bolqueII.tftp.ejecucion;
 
+import practicas.bolqueII.tftp.datagram.headers.ErrorHeader;
 import practicas.bolqueII.tftp.datagram.headers.Header;
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
 import practicas.bolqueII.tftp.datagram.headers.RequestHeader;
 import practicas.bolqueII.tftp.handlers.TFTPServerHandler;
+import practicas.bolqueII.tftp.tools.ErrorCodes;
 import practicas.bolqueII.tftp.tools.TFTPHeaderFormatException;
 import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
 
@@ -12,6 +14,7 @@ import java.net.*;
 import java.util.Arrays;
 
 import static practicas.bolqueII.tftp.datagram.headers.HeaderFactory.*;
+import static practicas.bolqueII.tftp.tools.ErrorCodes.ILLEGAL_OPERATION;
 import static teoria.udp.filetransfer.ServerUDP.ECHOMAX;
 
 public class TFTPServer {
@@ -44,14 +47,25 @@ public class TFTPServer {
                 } else if (req.getOpCode() == WRQ_OPCODE) {
                     handler = new TFTPServerHandler(socket, fileName, WRQ_OPCODE, clientInetAdress, clientTID);
                 } else if (req.getOpCode() == DATA_OPCODE || req.getOpCode() == ACK_OPCODE || req.getOpCode() == ERROR_OPCODE) {
-                    throw new UnsupportedTFTPOperation("[WARNING] DataPacket recivido sin inicio de transacci'on");
+                    ErrorHeader err  =headerFactory.getErrorHeader(ErrorCodes.UNKNOWN_ID, "[WARNING] DataPacket recivido sin inicio de transacci'on");
+                    socket.send(err.encapsulate(clientInetAdress, clientTID));
                 } else {
-                    throw new UnsupportedOperationException("[ERROR] Fallo al recibir petici'on. Petici'on recivida");
+                    ErrorHeader err  =headerFactory.getErrorHeader(ILLEGAL_OPERATION, "[ERROR] Fallo al recibir petici'on. Petici'on recivida");
+                    socket.send(err.encapsulate(clientInetAdress, clientTID));
                 }
 
                 handler.attend();
             } catch (IOException | UnsupportedTFTPOperation | TFTPHeaderFormatException e) {
-                System.err.println(e.getMessage());
+                short aux = 0;
+                if (e instanceof UnsupportedTFTPOperation)
+                    aux = ILLEGAL_OPERATION;
+
+                ErrorHeader err = headerFactory.getErrorHeader(aux, e.getMessage());
+                try {
+                    socket.send(err.encapsulate(requestPacket.getAddress(), requestPacket.getPort()));
+                } catch (IOException ex) {
+                    System.err.println("[ERROR] Fallo en el cierre rematuro");;
+                }
             }
 
         }

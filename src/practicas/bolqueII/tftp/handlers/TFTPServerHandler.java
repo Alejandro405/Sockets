@@ -1,17 +1,18 @@
 package practicas.bolqueII.tftp.handlers;
 
+import practicas.bolqueII.tftp.datagram.headers.ErrorHeader;
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
+import practicas.bolqueII.tftp.tools.InterruptedTransmissionException;
 import practicas.bolqueII.tftp.tools.StopAndWaitProtocol;
 
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
-import java.util.Arrays;
 
 import static practicas.bolqueII.tftp.datagram.headers.HeaderFactory.RRQ_OPCODE;
 import static practicas.bolqueII.tftp.datagram.headers.HeaderFactory.WRQ_OPCODE;
+import static practicas.bolqueII.tftp.tools.ErrorCodes.ABORT_TRANSACTION;
 
 public class TFTPServerHandler {
     private static final HeaderFactory headerFactory = new HeaderFactory();
@@ -71,7 +72,7 @@ public class TFTPServerHandler {
                 System.err.println(" asdfasdfasf");
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            interrupTransmission(e.getMessage());
         }
 
 
@@ -81,12 +82,11 @@ public class TFTPServerHandler {
      * La peticion WRQ del cliente ha de ser ciobfirmada con el primer bloque de datos
      */
     private void attendPutClientRequest() {
-        File strFile = new File(sFolder.toPath() + "/sessions/" + fileName);
+        File strFile = new File(sFolder.toPath() + "/TFTPServer/sessions/" + fileName);
         try (FileOutputStream outFile = new FileOutputStream(strFile)) {
-
-            StopAndWaitProtocol.attendDownload(socket, new BufferedOutputStream(outFile), clientInetAddress, clientTID);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            StopAndWaitProtocol.attendDownload(socket, new BufferedOutputStream(outFile), clientInetAddress, clientTID, 1);
+        } catch (IOException | InterruptedTransmissionException e) {
+            interrupTransmission(e.getMessage());
         }
     }
 
@@ -95,8 +95,17 @@ public class TFTPServerHandler {
         try {
             String line = datafile.getPath();
             StopAndWaitProtocol.sendFile(socket, datafile, clientInetAddress, clientTID);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | InterruptedTransmissionException e) {
+            interrupTransmission(e.getMessage());
+        }
+    }
+
+    private void interrupTransmission(String e) {
+        ErrorHeader err = headerFactory.getErrorHeader(ABORT_TRANSACTION, "[ERROR] Fallo en la transmision: " + e);
+        try {
+            socket.send(err.encapsulate(clientInetAddress, clientTID));
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
         }
     }
 

@@ -1,0 +1,5 @@
+ato de lectura -> mode [<ascii>|<binary>]
+Regristro host de destino -> connect <host>
+Lectura/Descarga de fichero -> get <fichero>
+Escritura/envío de fichero -> put <fichero>
+Finalización del servicio -> quit

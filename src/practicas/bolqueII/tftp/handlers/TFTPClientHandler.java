@@ -1,9 +1,6 @@
 package practicas.bolqueII.tftp.handlers;
 
-import practicas.bolqueII.tftp.datagram.headers.ACKHeader;
-import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
-import practicas.bolqueII.tftp.datagram.headers.RRQHeader;
-import practicas.bolqueII.tftp.datagram.headers.WRQHeader;
+import practicas.bolqueII.tftp.datagram.headers.*;
 import practicas.bolqueII.tftp.tools.OutOfTriesException;
 import practicas.bolqueII.tftp.tools.StopAndWaitProtocol;
 
@@ -14,6 +11,9 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.file.*;
 import java.util.Arrays;
+
+import static practicas.bolqueII.tftp.tools.ErrorCodes.ILLEGAL_OPERATION;
+import static practicas.bolqueII.tftp.tools.StopAndWaitProtocol.MTU;
 
 
 /**
@@ -33,8 +33,6 @@ public class TFTPClientHandler{
     private String opMode;
     private DatagramSocket clientSocket;
     private String fileName;
-
-    private static final int MAX_TRIES = 5;
     private static final String sFolder = System.getProperty("user.dir");
 
 
@@ -100,14 +98,10 @@ public class TFTPClientHandler{
                 attendPutRequest();
             } catch (OutOfTriesException e) {
                 System.err.println(e.getMessage());
-            } finally {
-                command = "";
-                serverName = null;
-                serverTID = -1;
-                mode = "";
-                opMode = "";
-                fileName = "";
             }
+        } else {
+            ErrorHeader err = headerFactory.getErrorHeader(ILLEGAL_OPERATION, "[ERROR] Método de operación no soprtado");
+            this.clientSocket.send(err.encapsulate(this.serverName, this.serverTID));
         }
     }
 
@@ -122,7 +116,7 @@ public class TFTPClientHandler{
 
 
         // Reestableciendo TID
-        DatagramPacket ackRequest = new DatagramPacket(new byte[512], 512);
+        DatagramPacket ackRequest = new DatagramPacket(new byte[MTU], MTU);
 
         do {
             clientSocket.receive(ackRequest);
@@ -133,17 +127,6 @@ public class TFTPClientHandler{
 
     }
 
-    /**
-     * Para que sea válido ha de ser un ack, con idBlock correecto, TID de la sesion
-     * @param packet
-     * @param serverTID
-     * @param serverName
-     * @return
-     */
-    private boolean errorFreeACK(DatagramPacket packet, int serverTID, InetAddress serverName) {
-        return false;
-    }
-
 
     private void attendGetRequest() throws IOException {
         File strFile = new File(sFolder
@@ -152,18 +135,21 @@ public class TFTPClientHandler{
 
         try (FileOutputStream outFile = new FileOutputStream(strFile)){
             BufferedOutputStream out = new BufferedOutputStream(outFile);
-            DatagramPacket ackRequest = new DatagramPacket(new byte[512], 512);
-            clientSocket.receive(ackRequest);
+            DatagramPacket ackRequest = new DatagramPacket(new byte[MTU], MTU);
+            clientSocket.receive(ackRequest); //Confirmacion de la peticion ->
+
+            DataHeader firstDatablock = headerFactory.getDataHeader(Arrays.copyOf(ackRequest.getData(), ackRequest.getLength()));
             serverName = ackRequest.getAddress();
             serverTID = ackRequest.getPort();
 
-            out.write(Arrays.copyOf(ackRequest.getData(), ackRequest.getLength()));
+            out.write(firstDatablock.getData());
 
-            ACKHeader ack = headerFactory.getAckHeader((short) 1);
+            ACKHeader ack = headerFactory.getAckHeader(firstDatablock.getBlockId());
             clientSocket.send(ack.encapsulate(ackRequest.getAddress(), ackRequest.getPort()));
-            StopAndWaitProtocol.attendDowload(clientSocket, out, ackRequest);
+            StopAndWaitProtocol.attendDowload(clientSocket, out, ackRequest, firstDatablock.getBlockId() + 1);
         }catch (IOException e ){
-            System.err.println("[ERROR] " + e.getMessage());
+            String aux = "[ERROR] " + e.getMessage();
+            System.err.println(aux);
         }
 
 
@@ -176,5 +162,9 @@ public class TFTPClientHandler{
 
     public void setServerName(InetAddress byName) {
         this.serverName = byName;
+    }
+
+    public void  setTID(int portService) {
+        this.serverTID = portService;
     }
 }

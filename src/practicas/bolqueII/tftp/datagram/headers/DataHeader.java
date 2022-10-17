@@ -71,4 +71,8 @@ public class DataHeader implements Header {
         header.blockId = inputStream.readShort();
         header.data = inputStream.readAllBytes();
     }
+
+    public byte[] getData() {
+        return this.data;
+    }
 }
