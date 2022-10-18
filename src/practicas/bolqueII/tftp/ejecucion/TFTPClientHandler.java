@@ -1,4 +1,4 @@
-package practicas.bolqueII.tftp.handlers;
+package practicas.bolqueII.tftp.ejecucion;
 
 import practicas.bolqueII.tftp.datagram.headers.*;
 import practicas.bolqueII.tftp.tools.InterruptedTransmissionException;
@@ -13,7 +13,7 @@ import java.net.SocketException;
 import java.nio.file.*;
 import java.util.Arrays;
 
-import static practicas.bolqueII.tftp.tools.ErrorCodes.ILLEGAL_OPERATION;
+import static practicas.bolqueII.tftp.ejecucion.ErrorCodes.ILLEGAL_OPERATION;
 import static practicas.bolqueII.tftp.tools.StopAndWaitProtocol.MTU;
 
 

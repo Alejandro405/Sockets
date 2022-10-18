@@ -1,8 +1,6 @@
 package practicas.bolqueII.tftp.ejecucion;
 
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
-import practicas.bolqueII.tftp.datagram.headers.RRQHeader;
-import practicas.bolqueII.tftp.handlers.TFTPClientHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;

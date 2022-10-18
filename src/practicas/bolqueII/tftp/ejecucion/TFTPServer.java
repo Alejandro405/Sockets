@@ -1,11 +1,8 @@
 package practicas.bolqueII.tftp.ejecucion;
 
 import practicas.bolqueII.tftp.datagram.headers.ErrorHeader;
-import practicas.bolqueII.tftp.datagram.headers.Header;
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
 import practicas.bolqueII.tftp.datagram.headers.RequestHeader;
-import practicas.bolqueII.tftp.handlers.TFTPServerHandler;
-import practicas.bolqueII.tftp.tools.ErrorCodes;
 import practicas.bolqueII.tftp.tools.TFTPHeaderFormatException;
 import practicas.bolqueII.tftp.tools.UnsupportedTFTPOperation;
 
@@ -14,7 +11,7 @@ import java.net.*;
 import java.util.Arrays;
 
 import static practicas.bolqueII.tftp.datagram.headers.HeaderFactory.*;
-import static practicas.bolqueII.tftp.tools.ErrorCodes.ILLEGAL_OPERATION;
+import static practicas.bolqueII.tftp.ejecucion.ErrorCodes.ILLEGAL_OPERATION;
 import static teoria.udp.filetransfer.ServerUDP.ECHOMAX;
 
 public class TFTPServer {

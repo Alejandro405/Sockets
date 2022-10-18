@@ -1,4 +1,4 @@
-package practicas.bolqueII.tftp.tools;
+package practicas.bolqueII.tftp.ejecucion;
 
 public class ErrorCodes {
     public static final short NON_DEFINING = 0;

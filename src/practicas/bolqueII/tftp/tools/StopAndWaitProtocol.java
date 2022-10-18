@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-import static practicas.bolqueII.tftp.tools.ErrorCodes.TRIES_EXCEED;
+import static practicas.bolqueII.tftp.ejecucion.ErrorCodes.TRIES_EXCEED;
 
 public class StopAndWaitProtocol {
     public static final int MAX_TRIES = 5;

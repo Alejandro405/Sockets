@@ -1,4 +1,4 @@
-package practicas.bolqueII.tftp.handlers;
+package practicas.bolqueII.tftp.ejecucion;
 
 import practicas.bolqueII.tftp.datagram.headers.ErrorHeader;
 import practicas.bolqueII.tftp.datagram.headers.HeaderFactory;
@@ -12,7 +12,7 @@ import java.net.InetAddress;
 
 import static practicas.bolqueII.tftp.datagram.headers.HeaderFactory.RRQ_OPCODE;
 import static practicas.bolqueII.tftp.datagram.headers.HeaderFactory.WRQ_OPCODE;
-import static practicas.bolqueII.tftp.tools.ErrorCodes.ABORT_TRANSACTION;
+import static practicas.bolqueII.tftp.ejecucion.ErrorCodes.ABORT_TRANSACTION;
 
 public class TFTPServerHandler {
     private static final HeaderFactory headerFactory = new HeaderFactory();
