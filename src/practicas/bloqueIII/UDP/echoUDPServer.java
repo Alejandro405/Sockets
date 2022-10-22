@@ -1,4 +1,4 @@
-package practicas.bloqueIII;
+package practicas.bloqueIII.UDP;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -42,8 +42,8 @@ public class echoUDPServer {
         }
     }
 
-    public static void main(String args[]){
+    /*public static void main(String args[]){
         echoUDPServer server = new echoUDPServer();
         server.activarCliente();
-    }
+    }*/
 }

@@ -22,12 +22,13 @@ public interface Header {
     byte[] compactHeader() throws IOException;
 
     /**
-     * Dados una direcci'on de red y un puerto, generar un datagrama UDP que encapsule los datos del mensaje TFTP
-     * @param address Direecci'on de destino de nivel de red
+     * Dados una dirección de red y un puerto, generar un datagrama UDP que encapsule los datos del mensaje TFTP
+     * @param address Dirección de destino de nivel de red
      * @param port puerto de destino nivel de transporte
-     * @return datagrama udp listo para el env'io
+     * @return datagrama udp listo para el envío
      */
     DatagramPacket encapsulate(InetAddress address, int port);
+
 
     short getOpCode();
 

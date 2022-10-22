@@ -1,4 +1,4 @@
-package practicas.bloqueIII;
+package practicas.bloqueIII.UDP;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -91,8 +91,8 @@ public class echoUDPClient {
 
 
 
-    public static void main(String args[]){
+    /*public static void main(String args[]){
         echoUDPClient c=new echoUDPClient("localhost");
         c.accionUdp();
-    }
+    }*/
 }

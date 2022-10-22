@@ -4,29 +4,26 @@ import practicas.bolqueII.tftp.datagram.headers.*;
 import practicas.bolqueII.tftp.tools.InterruptedTransmissionException;
 import practicas.bolqueII.tftp.tools.OutOfTriesException;
 import practicas.bolqueII.tftp.tools.StopAndWaitProtocol;
+import practicas.bolqueII.tftp.tools.TransferStatistics;
 
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.nio.file.*;
 import java.util.Arrays;
 
 import static practicas.bolqueII.tftp.ejecucion.ErrorCodes.ILLEGAL_OPERATION;
+import static practicas.bolqueII.tftp.ejecucion.TFTPServer.TFTP_SERVICE_PORT;
 import static practicas.bolqueII.tftp.tools.StopAndWaitProtocol.MTU;
 
 
 /**
- * Genera los datos necesarios para el envio del fichero mediante el protocoo de parada y espera:
- *      -> Fichero donde se almacenara'an los datos provinientes del servidor extraidos del socket
- *      -> TID de la transaccion para asegurar la autoria de los mensajes que se extraigan del socket
- *      -> Direcciones de nivel de red y transporte del servidor
+ * Clase encargada del manejo de las peticiones introducidas de teclado. Encapsula los datos necesarios para las transacciones
+ * entre cliente y servidor
  */
 public class TFTPClientHandler{
-    private static final short TRIES_ERROR = 1;
     private static final HeaderFactory headerFactory = new HeaderFactory();
-    public static final String MAX_TRIES_ERROR_MSG = "[ERROR] Se han superado el número de intentos de retransmision";
     private String command;
     private InetAddress serverName;
     private int serverTID;
@@ -51,7 +48,7 @@ public class TFTPClientHandler{
         serverName = byName;
     }
 
-    public TFTPClientHandler(DatagramSocket clientSocket) throws SocketException {
+    public TFTPClientHandler(DatagramSocket clientSocket){
         this.clientSocket = clientSocket;
     }
 
@@ -60,43 +57,33 @@ public class TFTPClientHandler{
         this.serverTID = portService;
     }
 
-    public void setMode(String mode) {
-        this.mode = mode;
-    }
-
-    public void setOpMode(String opMode) {
-        this.opMode = opMode;
-    }
-
-    public void setCommand(String command) {
-        this.command = command;
-    }
-
-    public String getCommand() {
-        return command;
-    }
-
-    public InetAddress getServerName() {
-        return serverName;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
+    /**
+     * Desencadena la ejecución del tratamiento de la petición del cliente, usando los datos de la conexión almacenados en el propio objeto
+     * En caso de no instanciar los atributos del objeto se mostrará un mensaje de error y se volverá a la ejecución normal del servidor
+     * @throws IOException en caso de fallo en la entrada salida sobre los ficheros o sockets
+     */
     public void adttend() throws IOException {
+        if (this.serverName == null || serverTID == 0) {
+            System.err.println("[ERROR] peticion get/put sin establecimiento de conexi'on");
+            return;
+        }
+
         // Generar petici'on para el servidor
         if (opMode.compareToIgnoreCase("get") == 0) {
             RRQHeader requestMessage = headerFactory.getRRQHeader(fileName, "Byte");
 
             clientSocket.send(requestMessage.encapsulate(serverName, serverTID));
             attendGetRequest();
+            System.out.println("Comando atendido con éxito");
+            this.serverTID = TFTP_SERVICE_PORT;
         } else if (opMode.compareToIgnoreCase("put") == 0) {
             try {
                 WRQHeader requestMessage = headerFactory.getWRQHeader(fileName, "Byte");
                 clientSocket.send(requestMessage.encapsulate(serverName, serverTID)); // Servidor a de responder con un ACK(0)
 
                 attendPutRequest();
+                System.out.println("Comando atendido con éxito");
+                this.serverTID = TFTP_SERVICE_PORT;
             } catch (OutOfTriesException e) {
                 System.err.println(e.getMessage());
             }
@@ -104,11 +91,14 @@ public class TFTPClientHandler{
             ErrorHeader err = headerFactory.getErrorHeader(ILLEGAL_OPERATION, "[ERROR] Método de operación no soprtado");
             this.clientSocket.send(err.encapsulate(this.serverName, this.serverTID));
         }
+
+
     }
 
     /**
-     * Envío de fichero
-     * Sender Parada Espera
+     * Encapsula y ejecuta la lógica del tratamiento de las peticiones de escritura del usuario (descarga de fichero).
+     * @throws IOException en caso de fallo en la entrada salida sobre los ficheros o sockets
+     * @throws OutOfTriesException En caso de que se hallan superados los intentos de retransmisión. En dicho caso se interpretará como que el otro extremo a dejado de escuchar las comunicaciones
      */
     private void attendPutRequest() throws IOException, OutOfTriesException {
         File txt = new File(sFolder+"/TFTPClient/data/"+fileName);
@@ -126,18 +116,23 @@ public class TFTPClientHandler{
 
 
         try {
-            StopAndWaitProtocol.sendFile(clientSocket, txt, ackRequest);
+            TransferStatistics transferStatistics = StopAndWaitProtocol.sendFile(clientSocket, txt, ackRequest);
+            System.out.println(transferStatistics);
         } catch (InterruptedTransmissionException e) {
             System.err.println(e.getMessage());
+            txt.delete();
         }
 
     }
 
-
-    private void attendGetRequest() throws IOException {
+    /**
+     * Encapsula y ejecuta la lógica del tratamiento de las peticiones de escritura del usuario (descarga de fichero).
+     *
+     */
+    private void attendGetRequest() {
         File strFile = new File(sFolder
-                                    + "/TFTPClient/sessions/"
-                                    + fileName);
+                + "/TFTPClient/sessions/"
+                + fileName);
 
         try (FileOutputStream outFile = new FileOutputStream(strFile)){
             BufferedOutputStream out = new BufferedOutputStream(outFile);
@@ -166,6 +161,29 @@ public class TFTPClientHandler{
 
     }
 
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
+    public void setOpMode(String opMode) {
+        this.opMode = opMode;
+    }
+
+    public void setCommand(String command) {
+        this.command = command;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public InetAddress getServerName() {
+        return serverName;
+    }
+
+    public String getMode() {
+        return mode;
+    }
 
     public void setFileName(String aux) {
         this.fileName = aux;

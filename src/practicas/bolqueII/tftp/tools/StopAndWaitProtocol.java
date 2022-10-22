@@ -10,35 +10,80 @@ import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Random;
 
 import static practicas.bolqueII.tftp.ejecucion.ErrorCodes.TRIES_EXCEED;
+import static practicas.bolqueII.tftp.ejecucion.TFTPServer.TFTP_SERVICE_PORT;
 
+
+/**
+ * Clase estática que provee de los métodos necesarios para el envío/recepción de ficheros mediante el protocolo de parada y espera
+ */
 public class StopAndWaitProtocol {
+
+    private static final Random rng = new Random(TFTP_SERVICE_PORT);
+
+
     public static final int MAX_TRIES = 5;
-    private static final HeaderFactory headerFactory = new HeaderFactory();
+
     public static final int TIMEOUT = 1000;
     public static final int MTU = 512;
 
-    public static void sendFile(DatagramSocket server, File dataFile, DatagramPacket clientReq) throws IOException, InterruptedTransmissionException {
-        sendFile(server, dataFile, clientReq.getAddress(), clientReq.getPort());
+    private static final HeaderFactory headerFactory = new HeaderFactory();
+
+    /**
+     * Delega la transferencia del fichero al método sendFile(DatagramSocket server, File dataFile, InetAddress dstInetAddress, int dstPort)
+     * pasando en dstInetAddress y dstPort la información contenida en clientReq
+     *
+     * @param server    Socket para el envío de segmentos de datos
+     * @param dataFile  Fichero a enviar
+     * @param clientReq Datagrama recibido con la petición inicial del cliente
+     * @return
+     * @throws IOException                      En caso de fallo con las operaciones de entrada-salida de ficheros o sockets
+     * @throws InterruptedTransmissionException En caso de error durante la transferencia del fichero
+     */
+    public static TransferStatistics sendFile(DatagramSocket server, File dataFile, DatagramPacket clientReq) throws IOException, InterruptedTransmissionException {
+
+        return sendFile(server, dataFile, clientReq.getAddress(), clientReq.getPort());
     }
 
-    public static void sendFile(DatagramSocket server, File dataFile, InetAddress dstInetAddress, int dstPort) throws IOException, InterruptedTransmissionException {
-
+    /**
+     * Envía el fichero introducido como parámetro, empleando el protocolo de parada y espera
+     *
+     * @param server         Socket para el envío de segmentos de datos
+     * @param dataFile       Fichero a enviar
+     * @param dstInetAddress Dirección de red del destinatario del fichero
+     * @param dstPort        Puerto de escucha del destinatario
+     * @return
+     * @throws IOException                      En caso de fallo con las operaciones de entrada-salida de ficheros o sockets
+     * @throws InterruptedTransmissionException En caso de error durante la transferencia del fichero
+     */
+    public static TransferStatistics sendFile(DatagramSocket server, File dataFile, InetAddress dstInetAddress, int dstPort) throws IOException, InterruptedTransmissionException {
+        int numLoss = 0, numRetrans = 0;
         byte[] data = Files.readAllBytes(Path.of(dataFile.getPath()));
-        DatagramPacket sendPacket = null;
-        DatagramPacket recivPacket = null;
+        DatagramPacket recivPacket;
 
         DataHeader dataBlock;
         ACKHeader ackHeader;
 
+
+        boolean loseSegment = false;
         int i = 0, tries = 0, idBlock = 1;
-        while (i + MTU < data.length && tries < MAX_TRIES) {
+        while (i + MTU < data.length && tries < MAX_TRIES) { // Particiones del fichero == Envío de fichero
+            if (rng.nextDouble(1) > 0.6){
+                loseSegment = true;
+                numLoss++;
+            }
+
+
             tries = 0;
-            boolean confirmado = false;
-            while (!confirmado && tries < MAX_TRIES)
+            boolean confirmado = false ;
+            while (!confirmado && tries < MAX_TRIES) // Envío de un bloque del fichero
             {
                 dataBlock = headerFactory.getDataHeader((short) idBlock, Arrays.copyOfRange(data, i, i + MTU));
+                // Simulacion de pérdida
+                if (loseSegment)
+                    numRetrans++;
                 server.send(dataBlock.encapsulate(dstInetAddress, dstPort));
                 server.setSoTimeout(TIMEOUT);
                 try{
@@ -69,7 +114,7 @@ public class StopAndWaitProtocol {
             ErrorHeader err = headerFactory.getErrorHeader(TRIES_EXCEED, "[ERROR] Superado intentos de retransmisión");
             server.send(err.encapsulate(dstInetAddress, dstPort));
         } else {
-            DataHeader lastDataBlock = headerFactory.getDataHeader(Arrays.copyOfRange(data, i, data.length - i));
+            DataHeader lastDataBlock = headerFactory.getDataHeader((short) idBlock, Arrays.copyOfRange(data, i, i + (data.length - i)));
             tries = 0;
             boolean confirmado = false;
             do {
@@ -89,31 +134,39 @@ public class StopAndWaitProtocol {
                     System.err.println("[ERROR] Tiempo de time-out Superado");
                 }
             } while (!confirmado && tries < MAX_TRIES);
-
         }
+
+        return new TransferStatistics(numLoss, numRetrans);
     }
 
-    private static void checkTransmission(DatagramPacket recivPacket) throws IOException, InterruptedTransmissionException {
-        try {
-            Header aux = headerFactory.createHeader(Arrays.copyOf(recivPacket.getData(), recivPacket.getLength()));
-            if (aux instanceof ErrorHeader) {
-                throw new InterruptedTransmissionException(((ErrorHeader) aux).getErrorMessage());
-            }
-        } catch (TFTPHeaderFormatException | UnsupportedTFTPOperation e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    /**
+     * Delega la descarga del fichero al método attendDownload(DatagramSocket clientSocket, BufferedOutputStream out, InetAddress srcInetAdres, int srcPort, int numSeq)
+     * pasando en dstInetAddress y dstPort la información contenida en clientReq
+     * @param clientSocket Socket para la recepción del fichero
+     * @param out Buffer Vinculado al fichero donde volcar los segmentos recibidos
+     * @param serverInitData Datagrama recibido con la petición inicial del cliente
+     * @param numSeq Numeración del primer segmento a recivir
+     * @throws IOException En caso de fallo con las operaciones de entrada-salida de ficheros o sockets
+     * @throws InterruptedTransmissionException En caso de error durante la transferencia del fichero
+     */
     public static void attendDowload(DatagramSocket clientSocket, BufferedOutputStream out, DatagramPacket serverInitData, int numSeq) throws IOException, InterruptedTransmissionException {
         attendDownload(clientSocket, out, serverInitData.getAddress(), serverInitData.getPort(), numSeq);
     }
 
+    /**
+     * Descarga el fichero introducido como parámetro, empleando el protocolo de parada y espera
+     * @param clientSocket Socket para la recepción del fichero
+     * @param out Buffer vinculado al fichero donde volcar los segmentos recibidos
+     * @param srcInetAdres Dirección de red de lafuente del fichero
+     * @param srcPort Puerto de envío de datos
+     * @param numSeq Numeración del primer segmento a recivir
+     * @throws IOException En caso de fallo con las operaciones de entrada-salida de ficheros o sockets
+     * @throws InterruptedTransmissionException En caso de error durante la transferencia del fichero
+     */
     public static void attendDownload(DatagramSocket clientSocket, BufferedOutputStream out, InetAddress srcInetAdres, int srcPort, int numSeq) throws IOException, InterruptedTransmissionException {
         DatagramPacket recivePacket = new DatagramPacket(new byte[MTU], MTU);
-        String ack = "OK";
-        DatagramPacket ackPacket = new DatagramPacket(ack.getBytes(), 0, ack.length(), srcInetAdres, srcPort);
-        ACKHeader ackHeader = null;
-        DataHeader datablock = null;
+        ACKHeader ackHeader;
+        DataHeader datablock;
 
         //int blockSeq = 2; El primer paquete de datos ya fué enviado
         boolean finalizado = false;
@@ -125,12 +178,11 @@ public class StopAndWaitProtocol {
             datablock = headerFactory.getDataHeader(Arrays.copyOf(recivePacket.getData(), recivePacket.getLength()));
             ackHeader = headerFactory.getAckHeader(datablock.getBlockId());
             if (recivePacket.getLength() == MTU && numSeq == datablock.getBlockId()) { // loque de datos -> confirmo recepción
-                clientSocket.send(ackHeader.encapsulate(srcInetAdres, srcPort));
                 numSeq++;
             } else {
                 finalizado = true;
             }
-
+            clientSocket.send(ackHeader.encapsulate(srcInetAdres, srcPort));
 
             out.write(datablock.getData());
         }
@@ -138,8 +190,32 @@ public class StopAndWaitProtocol {
         out.close();
     }
 
+    /**
+     * Método auxiliar para el control de la recepción de datagramas
+     * @param srcInetAdres Dirección de red del emisor
+     * @param srcPort Puerto emisor
+     * @param recivePacket Segmento recibido
+     * @return True sii las direcciones pasadas como parámetros concuerdan con las contenidas en los atributos del datagratama
+     */
     private static boolean isAuthorizedMessager(InetAddress srcInetAdres, int srcPort, DatagramPacket recivePacket) {
         return srcInetAdres.equals(recivePacket.getAddress())
                 && srcPort == recivePacket.getPort();
+    }
+
+    /**
+     * Dado un segmento enviado por el otro extremo, analiza el contenido del mismo, elevando excepción en función del tipo de error emitido por el extremo opuesto
+     * @param recivPacket segmento recibido a analizar
+     * @throws IOException En caso de fallo en la desiarialización del segmento
+     * @throws InterruptedTransmissionException En caso de que el otro extremo informe de algún tipo de error
+     */
+    private static void checkTransmission(DatagramPacket recivPacket) throws IOException, InterruptedTransmissionException {
+        try {
+            Header aux = headerFactory.createHeader(Arrays.copyOf(recivPacket.getData(), recivPacket.getLength()));
+            if (aux instanceof ErrorHeader) {
+                throw new InterruptedTransmissionException(((ErrorHeader) aux).getErrorMessage());
+            }
+        } catch (TFTPHeaderFormatException | UnsupportedTFTPOperation e) {
+            throw new InterruptedTransmissionException(e.getMessage());
+        }
     }
 }

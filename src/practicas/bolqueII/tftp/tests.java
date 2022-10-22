@@ -6,8 +6,9 @@ import java.nio.file.Files;
 import java.sql.SQLOutput;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Random;
 
-public class tests {
+public class tests extends prueba {
 
     public static final String ANSI_BLACK = "\u001B[30m";
     public static final String ANSI_RED = "\u001B[31m";
@@ -21,8 +22,17 @@ public class tests {
     public static final String ANSI_RESET = "\u001B[0m";
 
     private static final String sFolder = System.getProperty("user.dir");
+    private static final Random rng = new Random(5);
+
+    public tests(int[] input) {
+        super(input);
+    }
 
     public static void main(String[] args) throws IOException {
+
+        for (int i = 0; i < 15; i++) {
+            System.out.println(rng.nextFloat(1));
+        }
          /*
          * List<Integer> t1 = List.of(1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14);
 
@@ -43,7 +53,7 @@ public class tests {
          *         Short p = 0;
          *         System.out.println("Short 0 = "+ p);
          */
-
+        /*
         System.out.println(Arrays.toString("#".getBytes()));
 
         System.out.println("#: " + Character.getNumericValue('#'));
@@ -84,7 +94,7 @@ public class tests {
         out.write(datos);
 
         out.close();
-
+        */
 
 
     }

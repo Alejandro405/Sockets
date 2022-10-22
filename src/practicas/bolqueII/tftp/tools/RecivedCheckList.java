@@ -1,13 +1,16 @@
 package practicas.bolqueII.tftp.tools;
 
-import javax.swing.text.html.HTMLDocument;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.IntStream;
 
+
+/**
+ * Lista auxiliar para la implementación del protocolo de envío Repetición Selectiva
+ */
 public class RecivedCheckList {
     private int numBlocksRecived;
-    private SortedSet<Integer> ackList;
+    private final SortedSet<Integer> ackList;
     private boolean unOrderedCheckedBlock;
 
     public RecivedCheckList(int numBlocksRecived, SortedSet<Integer> ackList) {
