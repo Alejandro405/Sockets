@@ -17,7 +17,7 @@ public class prueba {
 
     @Override
     public String toString() {
-        return "texto.txt{" +
+        return "TheNextEpisode.txt{" +
                 "id=" + id +
                 ", a=" + a +
                 ", p=" + p +

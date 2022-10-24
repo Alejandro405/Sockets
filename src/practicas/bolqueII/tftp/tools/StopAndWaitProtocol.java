@@ -21,7 +21,7 @@ import static practicas.bolqueII.tftp.ejecucion.TFTPServer.TFTP_SERVICE_PORT;
  */
 public class StopAndWaitProtocol {
 
-    private static final Random rng = new Random(TFTP_SERVICE_PORT);
+    private static final Random rng = new Random();
 
 
     public static final int MAX_TRIES = 5;
@@ -110,18 +110,25 @@ public class StopAndWaitProtocol {
             }
         }
 
+        if (rng.nextDouble(1) > 60) {
+            loseSegment = true;
+            numLoss++;
+        }
+
         if (tries >= MAX_TRIES){
             ErrorHeader err = headerFactory.getErrorHeader(TRIES_EXCEED, "[ERROR] Superado intentos de retransmisión");
             server.send(err.encapsulate(dstInetAddress, dstPort));
         } else {
-            DataHeader lastDataBlock = headerFactory.getDataHeader((short) idBlock, Arrays.copyOfRange(data, i, i + (data.length - i)));
             tries = 0;
             boolean confirmado = false;
-            do {
+            while (!confirmado && tries < MAX_TRIES){
+                DataHeader lastDataBlock = headerFactory.getDataHeader((short) idBlock, Arrays.copyOfRange(data, i, i + (data.length - i)));
+                if (loseSegment)
+                    numRetrans++;
                 server.send(lastDataBlock.encapsulate(dstInetAddress, dstPort));
                 server.setSoTimeout(TIMEOUT);
                 try{
-                    do{
+                    do{ // Confirmar env'io
                         recivPacket = new DatagramPacket(new byte[MTU], MTU);
                         server.receive(recivPacket);
                     } while (!isAuthorizedMessager(dstInetAddress, dstPort, recivPacket));
@@ -133,7 +140,7 @@ public class StopAndWaitProtocol {
                     tries += 1;
                     System.err.println("[ERROR] Tiempo de time-out Superado");
                 }
-            } while (!confirmado && tries < MAX_TRIES);
+            }
         }
 
         return new TransferStatistics(numLoss, numRetrans);

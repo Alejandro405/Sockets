@@ -46,7 +46,7 @@ public class tests extends prueba {
          *         }
 
 
-         *         System.out.println(new texto.txt(new int[]{1, 2, 2}).toString());
+         *         System.out.println(new TheNextEpisode.txt(new int[]{1, 2, 2}).toString());
 
 
          *         System.out.println(Arrays.deepToString(result.toArray()));
@@ -59,13 +59,13 @@ public class tests extends prueba {
         System.out.println("#: " + Character.getNumericValue('#'));
 
         //String filename = "C:\\Users\\Usuario\\IdeaProjects\\Sockets\\src\\practicas\\bolqueII\\tftp";
-        String filename = "texto.txt";
+        String filename = "TheNextEpisode.txt";
 
           //Testeo ficheros y byte[]
 
         //Lectura
-        //File txt = new File(filename + "\\texto.txt");
-        File txt = new File(System.getProperty("user.dir") + "/texto.txt");
+        //File txt = new File(filename + "\\TheNextEpisode.txt");
+        File txt = new File(System.getProperty("user.dir") + "/TheNextEpisode.txt");
 
         byte[] datos = Files.readAllBytes(txt.toPath());
         System.out.println("Tamaño de bites del fichero: " + datos.length);
@@ -77,7 +77,7 @@ public class tests extends prueba {
         if (!clientFolder.exists())
             clientFolder.mkdirs();
 
-        File file = new File(clientFolder, "texto.txt");
+        File file = new File(clientFolder, "TheNextEpisode.txt");
 
         String[] split = file.getPath().split("/");
         LinkedList<String> aux = new LinkedList<>(Arrays.asList(split));

@@ -1,5 +1,9 @@
 package practicas.bolqueII.tftp.tools;
 
+
+/**
+ * Contenedor de informacion sobre la perdida y retransmisi'on de segmentos
+ */
 public class TransferStatistics {
     private int numLosses;
     private int numRetransmissions;

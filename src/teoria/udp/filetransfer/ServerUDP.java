@@ -20,7 +20,7 @@ public class ServerUDP {
 	 */
 	public static void main(String[] args) throws IOException {
 		/*
-		File txt = new File(sFolder.toPath() + "texto.txt");
+		File txt = new File(sFolder.toPath() + "TheNextEpisode.txt");
 
 		DatagramSocket clientSocket = new DatagramSocket(12345);
 		DatagramPacket packet = null;
